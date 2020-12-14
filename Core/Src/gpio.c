@@ -70,8 +70,8 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PA15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_15;
+  /*Configure GPIO pins : PA11 PA15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -86,6 +86,9 @@ void MX_GPIO_Init(void)
 unsigned char key1 = 0, key2 = 0;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
+	if(GPIO_Pin == GPIO_PIN_11){
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
+	}
 	if(GPIO_Pin == GPIO_PIN_13){
 		key1 = 1;
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);

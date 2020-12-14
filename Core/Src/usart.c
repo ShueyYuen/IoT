@@ -182,7 +182,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
 PUTCHAR_PROTOTYPE
 {
-  // 注意下面第一个参数是&huart1，因为cubemx配置了串�???1自动生成�???
+  // 注意下面第一个参数是&huart1，因为cubemx配置了串�????1自动生成�????
   HAL_UART_Transmit(&huart1, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
   return ch;
 }
@@ -260,16 +260,16 @@ int KE1_Send_AT(char *pcAt)
 /*
 * 函数说明: 接收并解析模组返回的AT响应数据
 * 输入参数
-* pcOut : 输入输出参数, 输入接收数据缓存地址, 输出已经接收的数�???
-* puiSz : 输入输出参数, 输入接收缓存朿大�???, 输出已经接收的数据长�???
+* pcOut : 输入输出参数, 输入接收数据缓存地址, 输出已经接收的数�????
+* puiSz : 输入输出参数, 输入接收缓存朿大�????, 输出已经接收的数据长�????
 * uiTimeoutMs : 输入参数, 接收超时(ms)
-* 返回�???
+* 返回�????
 * -1 出错
 * 0 AT命令响应超时
 * 1 AT命令接收到OK响应
 * 2 AT命令接收到ERROR响应
 * 3 接收到网络已注册提示
-* 4 模组接收到云端下发数�??
+* 4 模组接收到云端下发数�???
 */
 int KE1_Recv_AT(char *pcOut, unsigned int *puiSz, unsigned int uiTimeoutMs)
 {

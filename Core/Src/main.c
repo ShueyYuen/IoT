@@ -115,7 +115,7 @@ char acDevInfo[128] = {0}, acHexBuf[256] = {0}, acAtBuf[512] = {0}, acUserCmd[64
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	const char *pcVersion = "V0.0.7";
+	const char *pcVersion = "V0.1.7";
 	float fTemp = 34.2, fHumi = 0.0;
 	unsigned short usLight = 0, usSound = 0, usVoltage = 0;
 
@@ -155,11 +155,11 @@ int main(void)
   MX_I2C2_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-	Beep_Switch(1);
-	HAL_Delay(500);
-	Beep_Switch(0);
+//	Beep_Switch(1);
+//	HAL_Delay(500);
+//	Beep_Switch(0);
 
-	UART_Enable_Receive_IT();// 使能串口接收中断，开始接收数�??
+	UART_Enable_Receive_IT();// 使能串口接收中断，开始接收数???
 
 	OLED_Init(); // 初始化OLDE
 
@@ -181,7 +181,7 @@ int main(void)
 
 	if(0 == fHumi || 0 == iRet){
 		printf("I2C or AT NVIC_SystemReset\n");
-		NVIC_SystemReset();//无法读取I2C或�?�AT没有响应则MCU 重启
+		NVIC_SystemReset();//无法读取I2C�????AT没有响应则MCU 重启
 	}
 
 	OLED_Clear();
@@ -216,8 +216,8 @@ int main(void)
 			}
 		}
 
-		KE1_I2C_SHT31(&fTemp, &fHumi); // 采集温湿�?
-		KE1_ADC_Senser_Get(&usLight, &usSound, &usVoltage);//采集光强和噪�?
+		KE1_I2C_SHT31(&fTemp, &fHumi); // 采集温湿??
+		KE1_ADC_Senser_Get(&usLight, &usSound, &usVoltage);//采集光强和噪??
 		if(0 < fHumi){
 			OLED_ShowT_H(fTemp, fHumi);
 		}
@@ -238,10 +238,10 @@ int main(void)
 				iUserCase = NB_STEP_CHECK_AT;
 				continue;
 			case NB_STEP_CHECK_AT:
-				KE1_Send_AT("ATE1\r\n");// �?启模块AT命令回显功能
+				KE1_Send_AT("ATE1\r\n");// ??启模块AT命令回显功能
 				break;
 			case NB_STEP_CHECK_REG:
-				if(NB_OK == nbiot_check_reg(3)){// �?查模块网络注册情�?
+				if(NB_OK == nbiot_check_reg(3)){// ??查模块网络注册情??
 					iUserCase = NB_STEP_UP_REG_INFO;
 					netFlag = 1;
 				}else{
@@ -253,7 +253,7 @@ int main(void)
 				timeout = 10000;
 				break;
 			case NB_STEP_SET_COAP:
-				KE1_Send_AT("AT+NCDP=180.101.147.115,5683\r\n"); // 设置电信物联网南向接口地�?
+				KE1_Send_AT("AT+NCDP=180.101.147.115,5683\r\n"); // 设置电信物联网南向接口地??
 				break;
 			case NB_STEP_START_MODULE:
 				KE1_Send_AT("AT+CFUN=1\r\n"); // 启动模块
@@ -262,7 +262,7 @@ int main(void)
 			case NB_STEP_SET_PDP:
 				KE1_Send_AT("AT+CGDCONT=1,\"IP\",\"CTNB\"\r\n"); // 设置PDP
 				break;
-			case NB_STEP_SIM_CHECK: //�?查SIM是否存在
+			case NB_STEP_SIM_CHECK: //??查SIM是否存在
 				KE1_Send_AT("AT+CIMI\r\n");
 				break;
 			case NB_STEP_START_REG:
@@ -273,7 +273,7 @@ int main(void)
 				break;
 			case NB_STEP_WAITING_REG_OK:
 				HAL_Delay(1000);
-				KE1_Send_AT("AT+CGATT?\r\n"); // 检查网络注册状况
+				KE1_Send_AT("AT+CGATT?\r\n"); // �?查网络注册状�?
 				break;
 			case NB_STEP_UP_REG_INFO:
 				if(1 == netFlag && 0 == upNetFreq){
@@ -282,13 +282,13 @@ int main(void)
 					tryCnt = 0;
 					OLED_Show_UP_Flag(1);
 					/*
-					 * 	上报的无线参数�?�必须在数据范围内才算有效数据，数据范围要求�??
-						1. 信号强度，上报范围应�??-140�??-40之间
-						2. 覆盖等级，上报范围应�??0�??2之间
-						3. 信噪比，上报范围应在-20�??30之间
-						4. 小区ID，上报范围应�??0�??2147483647之间
+					 * 	上报的无线参�????必须在数据范围内才算有效数据，数据范围要�????
+						1. 信号强度，上报范围应???-140???-40之间
+						2. 覆盖等级，上报范围应???0???2之间
+						3. 信噪比，上报范围应在-20???30之间
+						4. 小区ID，上报范围应???0???2147483647之间
 					 * AT样例: AT+NMGS=11,03FFFFFFA608F651550E01
-						平台JSON�??: {"SignalPower":-90,"CellID":150360405,"SNR":14,"ECL":1}
+						平台JSON???: {"SignalPower":-90,"CellID":150360405,"SNR":14,"ECL":1}
 					 * */
 					memset(acAtBuf, 0, sizeof(acAtBuf));
 					nbiot_get_nuestats(&nbSP, &nbSNR, &nbCCID, &nbECL);
@@ -296,7 +296,7 @@ int main(void)
 					printf("Signal:%d, %d, %d, %d\r\n", nbSP, nbCCID, nbSNR, nbECL);
 
 					snprintf(acAtBuf, sizeof(acAtBuf), "AT+NMGS=14,03%08X%08X%08X%02X\r\n", nbSP, nbCCID, nbSNR, nbECL);// 打包模组信号强度参数
-					KE1_Send_AT(acAtBuf);// 发�?�信�??
+					KE1_Send_AT(acAtBuf);// �????�????
 					upNetFreq = (60*60)*2;
 				}
 
@@ -312,7 +312,7 @@ int main(void)
 					memset(acDevInfo, 0, sizeof(acDevInfo));
 					memset(acAtBuf, 0, sizeof(acAtBuf));
 
-					dLen = snprintf(acDevInfo, sizeof(acDevInfo), "{\"T\":\"%0.2f\",\"H\":\"%0.2f\",\"L\":\"%d\",\"S\":\"%d\",\"V\":\"%d\",\"NB\":\"%d\"}", fTemp, fHumi, usLight,usSound,usVoltage,iSigVal);// 打包设备传感器数�??
+					dLen = snprintf(acDevInfo, sizeof(acDevInfo), "{\"T\":\"%0.2f\",\"H\":\"%0.2f\",\"L\":\"%d\",\"S\":\"%d\",\"V\":\"%d\",\"NB\":\"%d\"}", fTemp, fHumi, usLight,usSound,usVoltage,iSigVal);// 打包设备传感器数???
 					printf("%s\r\n", acDevInfo);
 					if(0 < fHumi){
 						OLED_Show_UP_Flag(1);
@@ -381,7 +381,7 @@ int main(void)
 				}else if(0x34 == acUserCmd[7]){
 					HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3);
 				}
-				/* 向平台发送命令响�???
+				/* 向平台发送命令响????
 				 * AT+NMGS=5,02000A000A
 				 */
 				acUserCmd[1] = '2';

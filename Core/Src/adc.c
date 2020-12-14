@@ -168,7 +168,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 * 输入参数
 * pusLight : 光照强度输出地址
 * pusSound : 噪音输出地址
-* 返回�??
+* 返回�???
 *  0: 成功
 */
 int KE1_ADC_Senser_Get(unsigned short *pusLight, unsigned short *pusSound, unsigned short *pusVoltage)
@@ -181,8 +181,8 @@ int KE1_ADC_Senser_Get(unsigned short *pusLight, unsigned short *pusSound, unsig
 	*pusSound = 0;
 	*pusVoltage = 0;
 
-	HAL_ADC_Start_DMA( &hadc1, (uint32_t *)ausAdcDataBuf, 3); // �??始DMA AD采样
-	HAL_Delay(100); //延时�??小会，多采集�??�??
+	HAL_ADC_Start_DMA( &hadc1, (uint32_t *)ausAdcDataBuf, 3); // �???始DMA AD采样
+	HAL_Delay(100); //延时�???小会，多采集�???�???
 	HAL_ADC_Stop(&hadc1);// 结束DMA AD采样
 
 	// 光照强度AD数据转换（参考）
