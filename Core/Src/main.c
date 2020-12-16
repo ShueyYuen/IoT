@@ -172,7 +172,6 @@ void addEvent(int microseconds, void(*ev)()){
     if (NULL == head)
     {
         DelayEvent = node;
-        printf("NULL is here\n");
     } else
     {
         if (head->time > current)
@@ -191,7 +190,6 @@ void addEvent(int microseconds, void(*ev)()){
             head = head->next;             //pr指向下一个节点的地址
         }
         head->next = node;
-        printf("NULL is not here\n");
     }
 }
 // 执行延时行为
@@ -210,6 +208,13 @@ void executEvent(){
     }
 }
 
+void undoAuthing(){
+	authing = 0;
+}
+
+void undoAuthed(){
+	authed = 0;
+}
 /* USER CODE END 0 */
 
 /**
@@ -352,6 +357,7 @@ int main(void)
 			fingerprint = 0;
 			authed = 1;
 			authing = 0;
+			addEvent(10 * 60 * 1000, undoAuthed);
 		}
 		if (0 == authed)
 		{
@@ -533,23 +539,16 @@ int main(void)
 				{
 				case 1: // 授权开始
 					authing = 1;
+					addEvent(20 * ,000, undoAuthing);
 					break;
-				case 8: // 打开蜂鸣器
-					Beep_Switch(0);
-					printf("beep up!\n");
-					break;
-				case 9: // 关闭蜂鸣器
-					Beep_Switch(1);
-					printf("beep off!\n");
-					break;
-				case 10: // 打开自动报警
-					autoBeep = 1;
+				case 2: // 打开自动报警
+					low_alarm = 1;
 					printf("auto up!\n");
 					break;
-				case 11: // 关闭自动报警
-					autoBeep = 0;
+				case 3: // 关闭自动报警
+					low_alarm = 0;
 					break;
-				case 12: // 更新温度警报值
+				case 4: // 更新温度警报值
 					float min_tem = (hex2dec(acUserCmd[12], acUserCmd[13]) - 48) * 10.0 + (hex2dec(acUserCmd[14], acUserCmd[15]) - 48) * 1.0;
 					float max_tem = (hex2dec(acUserCmd[16], acUserCmd[17]) - 48) * 10.0 + (hex2dec(acUserCmd[18], acUserCmd[19]) - 48) * 1.0;
 					tMax = max_tem;
@@ -557,7 +556,7 @@ int main(void)
 					printf("change limit!\n");
 					printf("tMin:%.2f   tMax:%.2f\n", tMin, tMax);
 					break;
-				case 13: // 更新湿度警告
+				case 5: // 更新湿度警告
 					float min_hum = (hex2dec(acUserCmd[12], acUserCmd[13]) - 48) * 10.0 + (hex2dec(acUserCmd[14], acUserCmd[15]) - 48) * 1.0;
 					float max_hum = (hex2dec(acUserCmd[16], acUserCmd[17]) - 48) * 10.0 + (hex2dec(acUserCmd[18], acUserCmd[19]) - 48) * 1.0;
 					hMax = max_hum;
@@ -565,7 +564,7 @@ int main(void)
 					printf("change limit!\n");
 					printf("hMin:%.2f    hMax:%.2f", hMin, hMax);
 					break;
-				case 14: // 更新湿度警告
+				case 6: // 更新光度警告
 					float min_ins = (hex2dec(acUserCmd[12], acUserCmd[13]) - 48) * 10.0 + (hex2dec(acUserCmd[14], acUserCmd[15]) - 48) * 1.0;
 					float max_ins = (hex2dec(acUserCmd[16], acUserCmd[17]) - 48) * 10.0 + (hex2dec(acUserCmd[18], acUserCmd[19]) - 48) * 1.0;
 					iMax = max_ins;
