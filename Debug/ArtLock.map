@@ -5941,10 +5941,10 @@ LOAD d:/stm32cubeide_1.1.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.externa
  *(.bss*)
  .bss.ausAdcDataBuf.10487
                 0x00000000200003f8        0x6 Core/Src/adc.o
- .bss.key1      0x00000000200003fe        0x1 Core/Src/gpio.o
-                0x00000000200003fe                key1
- .bss.key2      0x00000000200003ff        0x1 Core/Src/gpio.o
-                0x00000000200003ff                key2
+ .bss.fingerprint      0x00000000200003fe        0x1 Core/Src/gpio.o
+                0x00000000200003fe                fingerprint
+ .bss.boxstate      0x00000000200003ff        0x1 Core/Src/gpio.o
+                0x00000000200003ff                boxstate
  .bss.acDevInfo
                 0x0000000020000400       0x80 Core/Src/main.o
                 0x0000000020000400                acDevInfo

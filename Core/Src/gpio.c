@@ -61,6 +61,12 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : PA7 PA15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
   /*Configure GPIO pins : PB1 PB3 PB4 PB5 
                            PB6 PB7 PB8 PB9 */
   GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5 
@@ -70,12 +76,6 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA11 PA15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_15;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 4, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
@@ -83,18 +83,21 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
-unsigned char key1 = 0, key2 = 0;
+unsigned char fingerprint = 0, boxstate = 0, autobeep = 0;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	if(GPIO_Pin == GPIO_PIN_11){
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
-	}
+
 	if(GPIO_Pin == GPIO_PIN_13){
-		key1 = 1;
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
+		fingerprint = 1;
+//		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
 	}else if(GPIO_Pin == GPIO_PIN_15){
-		key2 = 1;
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
+		if (boxstate == 0)
+			boxstate = 1;
+		else boxstate = 0;
+//		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
+	}else if(GPIO_Pin == GPIO_PIN_7){
+		autobeep = 1;
+//		HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7);
 	}
 }
 /* USER CODE END 2 */

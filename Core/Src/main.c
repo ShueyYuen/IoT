@@ -104,8 +104,112 @@ void ascii2hex(char *pcAscii, char *pcHex)
 		pos += 2;
 	}
 }
-extern unsigned char key1, key2;
+extern unsigned char fingerprint, boxstate, autobeep;
+// 是否开启自动报警，默认开。指纹认证后十分钟内关闭，或关上盖子关闭
+unsigned char low_alarm = 1;
+// 认证ing
+unsigned char authing = 0;
+// 认证过
+unsigned char authed = 0;
+
 char acDevInfo[128] = {0}, acHexBuf[256] = {0}, acAtBuf[512] = {0}, acUserCmd[64] = {0};
+float tMax, tMin, hMax, hMin, iMax, iMin;
+
+// 网络任务事件
+uint32_t nettickstart;
+
+// 控制灯光
+unsigned char rstate = 0, gstate = 0, bstate = 0;
+typedef enum{
+	RED_LIGHT = 0x0020,
+	GREEN_LIGHT = 0x0040,
+	BLUE_LIGHT = 0x0080
+}SELF_LIGHT;
+void switch_light(SELF_LIGHT light, int st){
+	unsigned char flag = 1;
+	switch(light){
+	case RED_LIGHT:
+		if(rstate == st){
+			flag = 0;
+		}
+		break;
+	case GREEN_LIGHT:
+		if(gstate == st){
+			flag = 0;
+		}
+		break;
+	case BLUE_LIGHT:
+		if(bstate == st){
+			flag = 0;
+		}
+		break;
+	}
+	if (flag == 1){
+		HAL_GPIO_TogglePin(GPIOB, ((uint16_t)light));
+	}
+}
+
+
+// 延时时间队列，延时记录为毫秒
+typedef struct eventlist
+{
+	uint32_t time;
+	void(*p)();
+	struct eventlist *next;
+} EventList;
+
+EventList * DelayEvent;
+// 添加延时行为，单位为毫秒
+void addEvent(int microseconds, void(*ev)()){
+    EventList* head = DelayEvent;
+    
+    uint32_t current = HAL_GetTick() + microseconds;
+    EventList *node = (EventList *)malloc(sizeof(EventList));
+    node->time = current;
+    node->p = ev;
+    node->next = NULL;
+
+    if (NULL == head)
+    {
+        DelayEvent = node;
+        printf("NULL is here\n");
+    } else
+    {
+        if (head->time > current)
+        {
+            node->next = head;
+            DelayEvent = node;
+            return;
+        }
+        while(head->next != NULL){     //当头节点的指针域不为NULL
+            if (head->next->time > current)
+            {
+                node->next = head->next;
+                head->next = node;
+                return;
+            }
+            head = head->next;             //pr指向下一个节点的地址
+        }
+        head->next = node;
+        printf("NULL is not here\n");
+    }
+}
+// 执行延时行为
+void executEvent(){
+    uint32_t current = HAL_GetTick();
+	if (NULL == DelayEvent)
+	{
+		return;
+	}
+    if (current >= DelayEvent->time)
+    {
+        DelayEvent->p();
+		EventList *node = DelayEvent;
+        DelayEvent = DelayEvent->next;
+		free(node);
+    }
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -136,7 +240,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+	nettickstart = HAL_GetTick();
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -181,7 +285,7 @@ int main(void)
 
 	if(0 == fHumi || 0 == iRet){
 		printf("I2C or AT NVIC_SystemReset\n");
-		NVIC_SystemReset();//无法读取I2C�????AT没有响应则MCU 重启
+		NVIC_SystemReset();//无法读取I2C�??????AT没有响应则MCU 重启
 	}
 
 	OLED_Clear();
@@ -216,22 +320,69 @@ int main(void)
 			}
 		}
 
+		// 判断温度湿度等是否正常，显示灯
 		KE1_I2C_SHT31(&fTemp, &fHumi); // 采集温湿??
 		KE1_ADC_Senser_Get(&usLight, &usSound, &usVoltage);//采集光强和噪??
 		if(0 < fHumi){
 			OLED_ShowT_H(fTemp, fHumi);
 		}
+		if(fTemp < tMin || fTemp > tMax)
+		{
+			switch_light(RED_LIGHT, 1);
+		} else {
+			switch_light(RED_LIGHT, 0);
+		}
+		if(fHumi < tMin || fHumi > tMax)
+		{
+			switch_light(BLUE_LIGHT, 1);
+		} else {
+			switch_light(BLUE_LIGHT, 0);
+		}
+		if(usLight < iMin || usLight > iMax)
+		{
+			switch_light(GREEN_LIGHT, 1);
+		} else {
+			switch_light(GREEN_LIGHT, 0);
+		}
+		// 判断结束
 
-		if(1 == key1){
-			key1 = 0;
-			printf("key1 touch!\r\n");
+		// 判断是否需要报警
+		if (1 == authing && 1 == fingerprint)
+		{
+			fingerprint = 0;
+			authed = 1;
+			authing = 0;
 		}
-		if(1 == key2){
-			key2 = 0;
-			printf("key2 touch!\r\n");
+		if (0 == authed)
+		{
+			if ((1 == autobeep || 1 == boxstate) && 1 == low_alarm)
+			{
+				if (1 == fingerprint)
+				{
+					autobeep = 0;
+					fingerprint = 0;
+					Beep_Switch(0);
+				} else {
+					Beep_Switch(1);
+				}
+			}
+		} else
+		{
+			if (0 == boxstate)
+			{
+				authed = 0;
+			}
 		}
+		if (1 == fingerprint)
+		{
+			fingerprint = 0;
+		}
+		// 结束报警检测
+
+		// 执行延时任务
+		executEvent();
+
 		timeout = 500;
-		printf("case %d - %d - %d - %d\r\n", iUserCase,timeout, upDevFreq, upNetFreq);
 		switch(iUserCase){
 			case NB_STEP_BUFF_CLEAR:
 				KE1_Clear_AT_Buf();
@@ -273,7 +424,7 @@ int main(void)
 				break;
 			case NB_STEP_WAITING_REG_OK:
 				HAL_Delay(1000);
-				KE1_Send_AT("AT+CGATT?\r\n"); // �?查网络注册状�?
+				KE1_Send_AT("AT+CGATT?\r\n"); // �???查网络注册状�???
 				break;
 			case NB_STEP_UP_REG_INFO:
 				if(1 == netFlag && 0 == upNetFreq){
@@ -282,7 +433,7 @@ int main(void)
 					tryCnt = 0;
 					OLED_Show_UP_Flag(1);
 					/*
-					 * 	上报的无线参�????必须在数据范围内才算有效数据，数据范围要�????
+					 * 	上报的无线参�??????必须在数据范围内才算有效数据，数据范围要�??????
 						1. 信号强度，上报范围应???-140???-40之间
 						2. 覆盖等级，上报范围应???0???2之间
 						3. 信噪比，上报范围应在-20???30之间
@@ -296,7 +447,7 @@ int main(void)
 					printf("Signal:%d, %d, %d, %d\r\n", nbSP, nbCCID, nbSNR, nbECL);
 
 					snprintf(acAtBuf, sizeof(acAtBuf), "AT+NMGS=14,03%08X%08X%08X%02X\r\n", nbSP, nbCCID, nbSNR, nbECL);// 打包模组信号强度参数
-					KE1_Send_AT(acAtBuf);// �????�????
+					KE1_Send_AT(acAtBuf);// �??????�??????
 					upNetFreq = (60*60)*2;
 				}
 
@@ -321,7 +472,8 @@ int main(void)
 						//printf("%s\r\n", acAtBuf);
 						KE1_Send_AT(acAtBuf);
 					}
-					upDevFreq = (60*60);
+					// 上传事件的时间
+					upDevFreq = 5;
 				}
 				break;
 		}
@@ -374,6 +526,64 @@ int main(void)
 				 * 解析用户命令执行对应操作
 				 * TO-DO
 				 */
+
+				int cmd_num = hex2dec(acUserCmd[6], acUserCmd[7]);
+				// printf("````````````````````````````````````````\n%d\n", cmd_num);
+				switch (cmd_num)
+				{
+				case 1: // 授权开始
+					authing = 1;
+					break;
+				case 8: // 打开蜂鸣器
+					Beep_Switch(0);
+					printf("beep up!\n");
+					break;
+				case 9: // 关闭蜂鸣器
+					Beep_Switch(1);
+					printf("beep off!\n");
+					break;
+				case 10: // 打开自动报警
+					autoBeep = 1;
+					printf("auto up!\n");
+					break;
+				case 11: // 关闭自动报警
+					autoBeep = 0;
+					break;
+				case 12: // 更新温度警报值
+					float min_tem = (hex2dec(acUserCmd[12], acUserCmd[13]) - 48) * 10.0 + (hex2dec(acUserCmd[14], acUserCmd[15]) - 48) * 1.0;
+					float max_tem = (hex2dec(acUserCmd[16], acUserCmd[17]) - 48) * 10.0 + (hex2dec(acUserCmd[18], acUserCmd[19]) - 48) * 1.0;
+					tMax = max_tem;
+					tMin = min_tem;
+					printf("change limit!\n");
+					printf("tMin:%.2f   tMax:%.2f\n", tMin, tMax);
+					break;
+				case 13: // 更新湿度警告
+					float min_hum = (hex2dec(acUserCmd[12], acUserCmd[13]) - 48) * 10.0 + (hex2dec(acUserCmd[14], acUserCmd[15]) - 48) * 1.0;
+					float max_hum = (hex2dec(acUserCmd[16], acUserCmd[17]) - 48) * 10.0 + (hex2dec(acUserCmd[18], acUserCmd[19]) - 48) * 1.0;
+					hMax = max_hum;
+					hMin = min_hum;
+					printf("change limit!\n");
+					printf("hMin:%.2f    hMax:%.2f", hMin, hMax);
+					break;
+				case 14: // 更新湿度警告
+					float min_ins = (hex2dec(acUserCmd[12], acUserCmd[13]) - 48) * 10.0 + (hex2dec(acUserCmd[14], acUserCmd[15]) - 48) * 1.0;
+					float max_ins = (hex2dec(acUserCmd[16], acUserCmd[17]) - 48) * 10.0 + (hex2dec(acUserCmd[18], acUserCmd[19]) - 48) * 1.0;
+					iMax = max_ins;
+					iMin = min_ins;
+					printf("change limit!\n");
+					printf("iMin:%.2f    iMax:%.2f", iMin, iMax);
+					break;
+				}
+
+				if (1 == authed)
+				{
+					OLED_Show_Note("AUTHED", 0, 0);
+				}
+				if (1 == authing)
+				{
+					OLED_Show_Note("AUTHING", 0, 0);
+				}
+
 				HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7);
 				HAL_Delay(1000);
 				if(0x33 == acUserCmd[7]){
@@ -396,12 +606,21 @@ int main(void)
 				NVIC_SystemReset();
 			}
 		}
-		if(0 != upNetFreq) {
-			upNetFreq--;
-			if(0 == upNetFreq){iUserCase = NB_STEP_UP_REG_INFO;}
+
+		if (HAL_GetTick() - nettickstart > 1000){
+			nettickstart = HAL_GetTick();
+			if(0 != upNetFreq) {
+				upNetFreq--;
+				if(0 == upNetFreq){iUserCase = NB_STEP_UP_REG_INFO;}
+			}
+			if(0 != upDevFreq) upDevFreq--;
 		}
-		if(0 != upDevFreq) upDevFreq--;
 	}
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_7,GPIO_PIN_SET);
+	HAL_Delay(1000);
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_7,GPIO_PIN_RESET);
+	HAL_Delay(1000);
+
   /* USER CODE END 3 */
 }
 

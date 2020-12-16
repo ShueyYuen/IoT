@@ -54,6 +54,8 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+unsigned char alert_work = 0;
+unsigned char finger_work = 0;
 
 /* USER CODE END EFP */
 

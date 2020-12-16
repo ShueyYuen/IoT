@@ -487,7 +487,7 @@ typedef struct
   * @{
   */
 #define FLASH_KEY1                0x45670123U                          /*!< Flash key1 */
-#define FLASH_KEY2                0xCDEF89ABU                          /*!< Flash key2: used with FLASH_KEY1
+#define FLASH_boxstate                0xCDEF89ABU                          /*!< Flash key2: used with FLASH_KEY1
                                                                             to unlock the FLASH registers access */
 
 #define FLASH_PDKEY1              0x04152637U                          /*!< Flash power down key1 */
