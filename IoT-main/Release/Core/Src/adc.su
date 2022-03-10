@@ -1,0 +1,4 @@
+adc.c:31:6:MX_ADC1_Init	32	static
+adc.c:87:6:HAL_ADC_MspInit	48	static
+adc.c:134:6:HAL_ADC_MspDeInit	8	static
+adc.c:174:5:KE1_ADC_Senser_Get	32	static

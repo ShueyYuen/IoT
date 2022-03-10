@@ -1,0 +1,6 @@
+core_cm4.h:1939:34:__NVIC_SystemReset	0	static,ignoring_inline_asm
+main.c:67:5:KE1_Parse_NNMI	40	static
+main.c:97:6:ascii2hex	24	static
+main.c:418:6:SystemClock_Config	208	static
+main.c:115:5:main	120	static
+main.c:485:6:Error_Handler	0	static

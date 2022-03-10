@@ -1,0 +1,4 @@
+nbiot.c:4:8:nbiot_reboot	32	static
+nbiot.c:66:8:nbiot_get_signl_val	64	static
+nbiot.c:125:8:nbiot_check_reg	48	static
+nbiot.c:187:8:nbiot_get_nuestats	96	static
